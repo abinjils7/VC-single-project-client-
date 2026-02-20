@@ -7,7 +7,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 // If any API response returns 503, we redirect to /maintenance.
 
 const rawBaseQuery = fetchBaseQuery({
-    baseUrl: 'http://localhost:5000',
+    baseUrl: 'https://vc-single-project-server.onrender.com',
     credentials: 'include',
 });
 
