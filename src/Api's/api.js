@@ -1,1 +1,1 @@
-export const register='http://localhost:5000/auth/register'
+export const register='https://vc-single-project-server.onrender.com'
