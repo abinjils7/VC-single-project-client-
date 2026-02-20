@@ -7,6 +7,8 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         const params = new URLSearchParams();
         if (arg?.role) params.append("role", arg.role);
         if (arg?.userId) params.append("userId", arg.userId);
+        if (arg?.page) params.append("page", arg.page);
+        if (arg?.limit) params.append("limit", arg.limit);
         return `/post/getpost?${params.toString()}`;
       },
       providesTags: ["Post"],
@@ -83,6 +85,20 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Post"],
     }),
+    deletePost: builder.mutation({
+      query: (postId) => ({
+        url: `/post/${postId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Post"],
+    }),
+    reportPost: builder.mutation({
+      query: ({ postId, reportData }) => ({
+        url: `/post/${postId}/report`,
+        method: "POST",
+        body: reportData,
+      }),
+    }),
   }),
 });
 
@@ -93,4 +109,6 @@ export const {
   useUnlikePostMutation,
   useAddCommentMutation,
   useDeleteCommentMutation,
+  useReportPostMutation,
+  useDeletePostMutation,
 } = postsApiSlice;

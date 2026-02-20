@@ -1,9 +1,36 @@
 
-import { useState } from "react";
+import { useResetPasswordMutation } from "../../features/auth/authApiSlice";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useFormik } from "formik";
+import { resetPasswordSchema } from "../../Utils/validationSchemas";
+import { toast } from "sonner";
 
 export default function ResetPassword() {
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get("email");
+
+  const formik = useFormik({
+    initialValues: {
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: resetPasswordSchema,
+    onSubmit: async (values) => {
+      if (!email) {
+        toast.error("Invalid reset link. Email is missing.");
+        return;
+      }
+      try {
+        await resetPassword({ email, newPassword: values.password }).unwrap();
+        toast.success("Password reset successful! Please login.");
+        navigate("/login");
+      } catch (error) {
+        toast.error(error?.data?.message || "Failed to reset password.");
+      }
+    },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -37,7 +64,7 @@ export default function ResetPassword() {
                 Enter and confirm your new password
               </p>
 
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={formik.handleSubmit}>
                 {/* New Password */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -45,13 +72,19 @@ export default function ResetPassword() {
                   </label>
                   <input
                     type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    name="password"
+                    value={formik.values.password}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="Enter new password"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                      focus:ring-2 focus:ring-black focus:border-transparent
-                      transition-colors"
+                    className={`w-full px-4 py-3 border ${formik.touched.password && formik.errors.password
+                        ? "border-red-500"
+                        : "border-gray-300"
+                      } rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-colors`}
                   />
+                  {formik.touched.password && formik.errors.password && (
+                    <div className="text-red-500 text-sm mt-1">{formik.errors.password}</div>
+                  )}
                 </div>
 
                 {/* Confirm Password */}
@@ -61,22 +94,29 @@ export default function ResetPassword() {
                   </label>
                   <input
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    name="confirmPassword"
+                    value={formik.values.confirmPassword}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="Re-enter new password"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                      focus:ring-2 focus:ring-black focus:border-transparent
-                      transition-colors"
+                    className={`w-full px-4 py-3 border ${formik.touched.confirmPassword && formik.errors.confirmPassword
+                        ? "border-red-500"
+                        : "border-gray-300"
+                      } rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-colors`}
                   />
+                  {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                    <div className="text-red-500 text-sm mt-1">{formik.errors.confirmPassword}</div>
+                  )}
                 </div>
 
                 {/* Submit */}
                 <button
                   type="submit"
+                  disabled={isLoading}
                   className="w-full py-3 rounded-lg bg-black text-white
-                    font-semibold hover:bg-gray-800 transition"
+                    font-semibold hover:bg-gray-800 transition disabled:opacity-50"
                 >
-                  Update Password
+                  {isLoading ? "Updating..." : "Update Password"}
                 </button>
               </form>
 

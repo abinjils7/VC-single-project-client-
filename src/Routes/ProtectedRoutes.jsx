@@ -1,10 +1,21 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectIsAuth } from "../features/auth/authSlice";
+import { selectIsAuth, selectCurrentUser } from "../features/auth/authSlice";
 
 const ProtectedRoutes = () => {
     const isAuth = useSelector(selectIsAuth);
-    return isAuth ? <Outlet /> : <Navigate to="/login" replace />;
+    const user = useSelector(selectCurrentUser);
+
+    if (!isAuth) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // If admin tries to access normal protected routes, redirect to admin dashboard
+    if (user?.role === 'admin') {
+        return <Navigate to="/admin/dashboard" replace />;
+    }
+
+    return <Outlet />;
 };
 
 export default ProtectedRoutes;

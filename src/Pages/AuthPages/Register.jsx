@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useRegisterMutation } from "../../features/auth/authApiSlice";
 import { selectIsAuth } from "../../features/auth/authSlice";
-
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
+import { useFormik } from "formik";
+import { registerSchema } from "../../Utils/validationSchemas";
 
 const ROLES = [
     { label: "Startup", value: "startup" },
@@ -12,501 +13,301 @@ const ROLES = [
 ];
 
 const INDUSTRIES = [
-    "Technology",
-    "SaaS",
-    "FinTech",
-    "HealthTech",
-    "EdTech",
-    "E-commerce",
-    "AI / ML",
-    "Web3 / Blockchain",
-    "Logistics",
-    "Climate / Energy",
-    "Media",
-    "Entertainment",
+    "Technology", "SaaS", "FinTech", "HealthTech", "EdTech", "E-commerce",
+    "AI / ML", "Web3 / Blockchain", "Logistics", "Climate / Energy", "Media", "Entertainment",
 ];
 
 const STAGES = ["Idea", "Seed", "MVP", "Growth", "Scale"];
 
 export default function Register() {
     const navigate = useNavigate();
-    // eslint-disable-next-line no-unused-vars
     const [register, { isLoading: loading }] = useRegisterMutation();
     const isAuth = useSelector(selectIsAuth);
 
     useEffect(() => {
         if (isAuth) {
-            // If auto-login after register, maybe go to home? But existing logic says /login
             navigate("/login");
         }
     }, [isAuth, navigate]);
 
-    const [form, setForm] = useState({
-        name: "",
-        email: "",
-        password: "",
-        role: "",
-        displayName: "",
-        description: "",
-        category1: "",
-        category2: "",
-        stage: "",
-        tokenValue: "", // For investors
-        earningPotential: "", // For startups
+    const formik = useFormik({
+        initialValues: {
+            name: "",
+            email: "",
+            password: "",
+            role: "startup", // Default role
+            displayName: "",
+            description: "",
+            category1: "",
+            category2: "",
+            stage: "Idea", // Default stage
+            tokenValue: "",
+            earningPotential: "",
+        },
+        validationSchema: registerSchema,
+        onSubmit: async (values) => {
+            const payload = { ...values };
+            // Clean up payload based on role
+            if (values.role !== "startup") {
+                delete payload.stage;
+                delete payload.earningPotential;
+            }
+            if (values.role !== "investor") {
+                delete payload.tokenValue;
+            }
+
+            try {
+                await register(payload).unwrap();
+                toast.success("Registration successful! Please login.");
+                navigate("/login");
+            } catch (error) {
+                toast.error(error?.data?.message || "Registration failed.");
+            }
+        },
     });
 
-    const handleChange = (e) =>
-        setForm({ ...form, [e.target.name]: e.target.value });
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const payload = { ...form };
-
-        // Clean up payload based on role
-        if (form.role !== "startup") {
-            delete payload.stage;
-            delete payload.earningPotential;
-        }
-
-        if (form.role !== "investor") {
-            delete payload.tokenValue;
-        }
-
-        console.log("REGISTER PAYLOAD:", payload);
-        try {
-            const response = await register(payload).unwrap();
-            console.log("Registration successful:", response);
-            toast.success("Registration successful! Please login.");
-            navigate("/login");
-        } catch (error) {
-            console.error("Register failed", error);
-            toast.error(error?.data?.message || "Registration failed. Please try again.");
-        }
-    };
-
     return (
-        <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 overflow-hidden">
-            <div className="w-full max-w-5xl h-[90vh] max-h-[800px] bg-white rounded-2xl shadow-2xl overflow-hidden">
-                <div className="flex h-full">
-                    {/* Left side - Brand/Info */}
-                    <div className="w-2/5 bg-gradient-to-br from-black to-gray-900 text-white flex flex-col p-8">
-                        <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-8">
-                                <div className="h-12 w-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                    <span className="text-2xl font-bold">R</span>
-                                </div>
-                                <h1 className="text-2xl font-bold">Register</h1>
-                            </div>
+        <div className="h-screen w-full relative flex items-center justify-center p-4 overflow-hidden bg-black">
+            {/* Global Video Background */}
+            <div className="absolute inset-0 z-0">
+                <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-60">
+                    <source src="/assets/Smooth_Floating_Space_Movement_Video.mp4" type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50" />
+            </div>
 
-                            <h2 className="text-3xl font-bold mb-6">Join Our Community</h2>
-                            <p className="text-gray-300 text-lg mb-8">
-                                Connect with{" "}
-                                {form.role === "startup" ? "investors" : "startups"} that align
-                                with your vision and goals.
-                            </p>
+            {/* Main Container */}
+            <div className="relative z-10 w-full max-w-6xl h-auto min-h-screen lg:min-h-[85vh] lg:h-[85vh] grid grid-cols-1 lg:grid-cols-2 bg-[#0a0a0a]/80 rounded-none lg:rounded-[40px] overflow-hidden border-0 lg:border border-white/10 backdrop-blur-xl shadow-2xl">
 
-                            {/* Dynamic benefits based on role */}
-                            <div className="space-y-4 mb-10">
-                                <div className="flex items-start">
-                                    <div className="h-6 w-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-1 shrink-0">
-                                        <svg
-                                            className="h-3 w-3"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M5 13l4 4L19 7"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <span className="text-gray-300">
-                                        {form.role === "startup"
-                                            ? "Access to verified investors"
-                                            : "Discover promising startups"}
-                                    </span>
-                                </div>
-                                <div className="flex items-start">
-                                    <div className="h-6 w-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-1 shrink-0">
-                                        <svg
-                                            className="h-3 w-3"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M5 13l4 4L19 7"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <span className="text-gray-300">
-                                        {form.role === "startup"
-                                            ? "Showcase your earning potential to investors"
-                                            : "Evaluate token-based investment opportunities"}
-                                    </span>
-                                </div>
-                                <div className="flex items-start">
-                                    <div className="h-6 w-6 bg-white/20 rounded-full flex items-center justify-center mr-3 mt-1 shrink-0">
-                                        <svg
-                                            className="h-3 w-3"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M5 13l4 4L19 7"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <span className="text-gray-300">
-                                        Secure and private communication
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                {/* Left Side: Brand/Info */}
+                <div className="relative p-8 lg:p-12 flex flex-col justify-between bg-gradient-to-br from-[#4c1d95]/90 to-[#1e1b4b]/90 min-h-[300px] lg:min-h-0">
+                    <div className="relative z-10">
 
-                        {/* Testimonial */}
-                        <div className="pt-6 border-t border-white/20">
-                            <p className="text-gray-300 italic mb-3 text-sm">
-                                {form.role === "startup"
-                                    ? "Secured $2M funding by clearly showcasing our earning potential to the right investors."
-                                    : "Found my perfect investor match within 48 hours of signing up."}
-                            </p>
-                            <div className="flex items-center">
-                                <div className="h-8 w-8 bg-gray-300 rounded-full mr-3"></div>
-                                <div>
-                                    <p className="font-medium text-sm">
-                                        {form.role === "startup" ? "Alex Rivera" : "Sarah Chen"}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        {form.role === "startup"
-                                            ? "CEO, FinFlow Analytics"
-                                            : "Founder, TechFlow AI"}
-                                    </p>
-                                </div>
-                            </div>
+
+                        <h1 className="text-3xl lg:text-5xl font-bold text-white mb-4 lg:mb-6 leading-tight animate-in fade-in slide-in-from-left duration-700">
+                            Join Our <br /> Community
+                        </h1>
+                        <p className="text-purple-100/60 text-base lg:text-lg mb-8 lg:mb-10 max-w-sm">
+                            Connect with {formik.values.role === "startup" ? "investors" : "startups"} that align with your vision.
+                        </p>
+
+                        <div className="flex items-center gap-4 p-4 lg:p-5 rounded-2xl bg-white text-black shadow-xl w-fit pr-8 lg:pr-10 transition-transform hover:scale-105 duration-300">
+                            <span className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full bg-black text-white text-sm lg:text-base font-bold">1</span>
+                            <span className="font-bold text-xs lg:text-sm">Sign up your account</span>
                         </div>
                     </div>
 
-                    {/* Right side - Form */}
-                    <div className="w-3/5 overflow-y-auto p-8">
-                        <div className="mb-6">
-                            <h3 className="text-2xl font-bold text-gray-900">
-                                Create Account
-                            </h3>
-                            <p className="text-gray-500 text-sm">
-                                Fill in your details to get started
-                            </p>
+                    <div className="relative z-10 pt-6 border-t border-white/10 mt-8 lg:mt-0">
+                        <p className="text-gray-300 italic text-xs lg:text-sm mb-2">
+                            {formik.values.role === "startup"
+                                ? "Secured $2M funding by showcasing our potential."
+                                : "Found the perfect match within 48 hours."}
+                        </p>
+                        <p className="text-white font-bold text-[10px] lg:text-xs uppercase tracking-widest">
+                            {formik.values.role === "startup" ? "Alex Rivera — CEO" : "Sarah Chen — Founder"}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Right Side: Form (Scrollable content inside fixed container) */}
+                <div className="p-8 lg:p-14 flex flex-col bg-black/20 overflow-y-auto">
+                    <div className="w-full">
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-white">Create Account</h3>
+                            <p className="text-gray-500 text-sm">Fill in your details to get started</p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            {/* Split: Role + Name */}
+                        <form onSubmit={formik.handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                {/* Role */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 block">
-                                        Role *
-                                    </label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Role *</label>
                                     <select
                                         name="role"
-                                        value={form.role}
-                                        onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                        required
+                                        value={formik.values.role}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all"
                                     >
-                                        <option value="">Select Role</option>
-                                        {ROLES.map((r) => (
-                                            <option key={r.value} value={r.value}>
-                                                {r.label}
-                                            </option>
-                                        ))}
+                                        <option value="" className="bg-[#0a0a0a]">Select Role</option>
+                                        {ROLES.map((r) => <option key={r.value} value={r.value} className="bg-[#0a0a0a]">{r.label}</option>)}
                                     </select>
+                                    {formik.touched.role && formik.errors.role && (
+                                        <div className="text-red-500 text-xs mt-1">{formik.errors.role}</div>
+                                    )}
                                 </div>
-
-                                {/* Full Name */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 block">
-                                        Full Name *
-                                    </label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Full Name *</label>
                                     <input
                                         name="name"
                                         placeholder="John Doe"
-                                        value={form.name}
-                                        onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                        required
+                                        value={formik.values.name}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.name && formik.errors.name ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                     />
+                                    {formik.touched.name && formik.errors.name && (
+                                        <div className="text-red-500 text-xs mt-1">{formik.errors.name}</div>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Split: Email + Password */}
                             <div className="grid grid-cols-2 gap-4">
-                                {/* Email */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 block">
-                                        Email Address *
-                                    </label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Email Address *</label>
                                     <input
                                         name="email"
                                         type="email"
                                         placeholder="you@example.com"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                        required
+                                        value={formik.values.email}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.email && formik.errors.email ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                     />
+                                    {formik.touched.email && formik.errors.email && (
+                                        <div className="text-red-500 text-xs mt-1">{formik.errors.email}</div>
+                                    )}
                                 </div>
-
-                                {/* Password */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 block">
-                                        Password *
-                                    </label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Password *</label>
                                     <input
                                         name="password"
                                         type="password"
                                         placeholder="••••••••"
-                                        value={form.password}
-                                        onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                        required
+                                        value={formik.values.password}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.password && formik.errors.password ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                     />
+                                    {formik.touched.password && formik.errors.password && (
+                                        <div className="text-red-500 text-xs mt-1">{formik.errors.password}</div>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Display Name */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 block">
-                                    {form.role === "startup"
-                                        ? "Startup Name"
-                                        : "Funder / Firm Name"}{" "}
-                                    *
-                                </label>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-gray-500 ml-1 uppercase">{formik.values.role === "startup" ? "Startup Name" : "Funder / Firm Name"} *</label>
                                 <input
                                     name="displayName"
-                                    placeholder={
-                                        form.role === "startup"
-                                            ? "Your Startup Name"
-                                            : "Your Fund or Company Name"
-                                    }
-                                    value={form.displayName}
-                                    onChange={handleChange}
-                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                    required
+                                    value={formik.values.displayName}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    placeholder={formik.values.role === "startup" ? "Your Startup Name" : "Your Fund Name"}
+                                    className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.displayName && formik.errors.displayName ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                 />
+                                {formik.touched.displayName && formik.errors.displayName && (
+                                    <div className="text-red-500 text-xs mt-1">{formik.errors.displayName}</div>
+                                )}
                             </div>
 
-                            {/* Description */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 block">
-                                    {form.role === "startup"
-                                        ? "Startup Description"
-                                        : "Profile Description"}{" "}
-                                    *
-                                </label>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Description *</label>
                                 <textarea
                                     name="description"
-                                    placeholder={
-                                        form.role === "startup"
-                                            ? "Describe your startup, mission, and what makes you unique..."
-                                            : "Describe your investment focus, experience, and interests..."
-                                    }
                                     rows="2"
-                                    value={form.description}
-                                    onChange={handleChange}
-                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                    required
+                                    value={formik.values.description}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.description && formik.errors.description ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all resize-none`}
                                 />
+                                {formik.touched.description && formik.errors.description && (
+                                    <div className="text-red-500 text-xs mt-1">{formik.errors.description}</div>
+                                )}
                             </div>
 
-                            {/* Split: Categories */}
                             <div className="grid grid-cols-2 gap-4">
-                                {/* Primary Industry */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 block">
-                                        Primary Industry *
-                                    </label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Primary Industry *</label>
                                     <select
                                         name="category1"
-                                        value={form.category1}
-                                        onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                        required
+                                        value={formik.values.category1}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.category1 && formik.errors.category1 ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                     >
-                                        <option value="">Select Industry</option>
-                                        {INDUSTRIES.map((ind) => (
-                                            <option key={ind} value={ind}>
-                                                {ind}
-                                            </option>
-                                        ))}
+                                        <option value="" className="bg-[#0a0a0a]">Select Industry</option>
+                                        {INDUSTRIES.map((ind) => <option key={ind} value={ind} className="bg-[#0a0a0a]">{ind}</option>)}
                                     </select>
+                                    {formik.touched.category1 && formik.errors.category1 && (
+                                        <div className="text-red-500 text-xs mt-1">{formik.errors.category1}</div>
+                                    )}
                                 </div>
-
-                                {/* Secondary Industry */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 block">
-                                        Secondary Industry *
-                                    </label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Secondary Industry *</label>
                                     <select
                                         name="category2"
-                                        value={form.category2}
-                                        onChange={handleChange}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                        required
+                                        value={formik.values.category2}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.category2 && formik.errors.category2 ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                     >
-                                        <option value="">Select Industry</option>
-                                        {INDUSTRIES.map((ind) => (
-                                            <option key={ind} value={ind}>
-                                                {ind}
-                                            </option>
-                                        ))}
+                                        <option value="" className="bg-[#0a0a0a]">Select Industry</option>
+                                        {INDUSTRIES.map((ind) => <option key={ind} value={ind} className="bg-[#0a0a0a]">{ind}</option>)}
                                     </select>
+                                    {formik.touched.category2 && formik.errors.category2 && (
+                                        <div className="text-red-500 text-xs mt-1">{formik.errors.category2}</div>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Conditional fields based on role */}
-                            {form.role === "startup" && (
+                            {formik.values.role === "startup" && (
                                 <div className="grid grid-cols-2 gap-4">
-                                    {/* Startup Stage */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700 block">
-                                            Startup Stage *
-                                        </label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Startup Stage *</label>
                                         <select
                                             name="stage"
-                                            value={form.stage}
-                                            onChange={handleChange}
-                                            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                            required
+                                            value={formik.values.stage}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.stage && formik.errors.stage ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                         >
-                                            <option value="">Select Stage</option>
-                                            {STAGES.map((s) => (
-                                                <option key={s} value={s}>
-                                                    {s}
-                                                </option>
-                                            ))}
+                                            <option value="" className="bg-[#0a0a0a]">Select Stage</option>
+                                            {STAGES.map((s) => <option key={s} value={s} className="bg-[#0a0a0a]">{s}</option>)}
                                         </select>
+                                        {formik.touched.stage && formik.errors.stage && (
+                                            <div className="text-red-500 text-xs mt-1">{formik.errors.stage}</div>
+                                        )}
                                     </div>
-
-                                    {/* Earning Potential for Startups */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700 block">
-                                            Assumed Earning Potential *
-                                        </label>
-                                        <div className="relative">
-                                            <input
-                                                name="earningPotential"
-                                                type="text"
-                                                placeholder="e.g., $1M - $5M ARR in 2 years"
-                                                value={form.earningPotential}
-                                                onChange={handleChange}
-                                                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                                required
-                                            />
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                <span className="text-gray-500 text-xs">per year</span>
-                                            </div>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Projected annual revenue or growth expectations
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Token Value for Investors */}
-                            {form.role === "investor" && (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 block">
-                                        Token Value / Investment Range *
-                                    </label>
-                                    <div className="relative">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Earning Potential *</label>
                                         <input
-                                            name="tokenValue"
-                                            type="text"
-                                            placeholder="e.g., $50K - $500K per project"
-                                            value={form.tokenValue}
-                                            onChange={handleChange}
-                                            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
-                                            required
+                                            name="earningPotential"
+                                            value={formik.values.earningPotential}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            placeholder="$1M ARR"
+                                            className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.earningPotential && formik.errors.earningPotential ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
                                         />
-                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <span className="text-gray-500 text-xs">USD</span>
-                                        </div>
+                                        {formik.touched.earningPotential && formik.errors.earningPotential && (
+                                            <div className="text-red-500 text-xs mt-1">{formik.errors.earningPotential}</div>
+                                        )}
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Typical investment amount per startup or token value range
-                                    </p>
                                 </div>
                             )}
 
-                            {/* Terms checkbox */}
-                            <div className="flex items-center pt-2">
-                                <input
-                                    type="checkbox"
-                                    id="terms"
-                                    className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
-                                    required
-                                />
-                                <label htmlFor="terms" className="ml-2 text-xs text-gray-700">
-                                    I agree to the{" "}
-                                    <a
-                                        href="/terms"
-                                        className="text-black font-medium hover:underline"
-                                    >
-                                        Terms of Service
-                                    </a>{" "}
-                                    and{" "}
-                                    <a
-                                        href="/privacy"
-                                        className="text-black font-medium hover:underline"
-                                    >
-                                        Privacy Policy
-                                    </a>
-                                </label>
-                            </div>
+                            {formik.values.role === "investor" && (
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase">Investment Range *</label>
+                                    <input
+                                        name="tokenValue"
+                                        value={formik.values.tokenValue}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        placeholder="$50K - $500K"
+                                        className={`w-full px-4 py-3 bg-white/5 border ${formik.touched.tokenValue && formik.errors.tokenValue ? 'border-red-500' : 'border-white/10'} rounded-xl text-white text-sm focus:border-purple-500/50 outline-none transition-all`}
+                                    />
+                                    {formik.touched.tokenValue && formik.errors.tokenValue && (
+                                        <div className="text-red-500 text-xs mt-1">{formik.errors.tokenValue}</div>
+                                    )}
+                                </div>
+                            )}
 
-                            {/* Submit button */}
-                            <button
-                                type="submit"
-                                className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-all duration-300 mt-4 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-                            >
-                                Create Account
+                            <button type="submit" disabled={loading} className="w-full bg-white text-black font-bold py-4 rounded-xl mt-4 active:scale-[0.98] hover:bg-gray-100 transition-all duration-200 disabled:opacity-50">
+                                {loading ? "Creating Account..." : "Create Account"}
                             </button>
                         </form>
 
-                        {/* Login link */}
-                        <p className="text-center text-xs text-gray-500 mt-6 pt-6 border-t border-gray-200">
-                            Already have an account?{" "}
-                            <a
-                                href="/login"
-                                className="text-black font-semibold hover:text-gray-800 transition-colors inline-flex items-center"
-                            >
-                                Sign in here
-                                <svg
-                                    className="w-3 h-3 ml-1"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M14 5l7 7m0 0l-7 7m7-7H3"
-                                    />
-                                </svg>
-                            </a>
+                        <p className="text-center mt-8 text-xs text-gray-500">
+                            Already have an account? <a href="/login" className="text-white font-bold hover:underline ml-1">Sign in here</a>
                         </p>
                     </div>
                 </div>

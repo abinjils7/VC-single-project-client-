@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 export const PLANS = [
@@ -70,7 +70,7 @@ export const PlansGrid = ({ plans, handleSubscribe, loading }) => (
                 <div className="p-8 flex-1">
                     <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
                     <div className="mt-4 flex items-baseline">
-                        <span className="text-4xl font-extrabold text-gray-900">${plan.price}</span>
+                        <span className="text-4xl font-extrabold text-gray-900">₹{plan.price}</span>
                         <span className="ml-1 text-xl text-gray-500">/month</span>
                     </div>
 

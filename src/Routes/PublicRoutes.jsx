@@ -1,10 +1,19 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectIsAuth } from "../features/auth/authSlice";
+import { selectIsAuth, selectCurrentUser } from "../features/auth/authSlice";
 
 const PublicRoutes = () => {
     const isAuth = useSelector(selectIsAuth);
-    return isAuth ? <Navigate to="/home" replace /> : <Outlet />;
+    const user = useSelector(selectCurrentUser);
+
+    if (isAuth) {
+        if (user?.role === 'admin') {
+            return <Navigate to="/admin/dashboard" replace />;
+        }
+        return <Navigate to="/home" replace />;
+    }
+
+    return <Outlet />;
 };
 
 export default PublicRoutes;

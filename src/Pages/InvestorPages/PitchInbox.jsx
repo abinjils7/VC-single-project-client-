@@ -2,7 +2,8 @@ import { useSelector } from "react-redux";
 import { useGetPitchesForInvestorQuery, useUpdatePitchStatusMutation } from "../../features/pitch/pitchApiSlice";
 import { selectCurrentUser } from "../../features/auth/authSlice";
 import { useGetUserQuery } from "../../features/user/userApislice";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
+import Sidebar from "../../Components/Sidebar";
 
 export default function PitchInbox() {
     const user = useSelector(selectCurrentUser);
@@ -30,96 +31,133 @@ export default function PitchInbox() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-gray-600">Loading inbox...</div>
+            <div className="h-screen bg-black flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-red-500">Failed to load pitches.</div>
-            </div>
-        );
-    }
+    const xFonts = { fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif' };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">Pitch Inbox</h1>
+        <div className="min-h-screen bg-black text-[#e7e9ea] font-sans" style={xFonts}>
+            {/* Custom Scrollbar Styles */}
+            <style>
+                {`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #2f3336;
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
+                `}
+            </style>
 
-                {pitches.length === 0 ? (
-                    <div className="bg-white rounded-xl shadow-sm p-12 text-center text-gray-500">
-                        No pitches received yet.
+            {/* Header */}
+            <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
+                <div className="w-full px-8 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 border-2 border-white rounded-full flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        </div>
+                        <h1 className="text-xl font-bold tracking-tight text-white">Venture Capital</h1>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {pitches.map((pitch) => (
-                            <div key={pitch._id} className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
-                                {/* Video Player PREVIEW */}
-                                <div className="aspect-video bg-black relative">
-                                    <video
-                                        src={`http://localhost:5000/${pitch.pitchVideoUrl}`}
-                                        controls
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase text-white ${pitch.status === 'accepted' ? 'bg-green-500' :
-                                            pitch.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'
-                                        }`}>
-                                        {pitch.status}
-                                    </div>
-                                </div>
+                </div>
+            </header>
 
-                                <div className="p-6 flex-1 flex flex-col">
-                                    {/* Startup Info */}
-                                    <div className="flex items-center space-x-3 mb-4">
-                                        <img
-                                            src={pitch.fromUserId?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${pitch.fromUserId?.name || "unknown"}`}
-                                            alt={pitch.fromUserId?.name}
-                                            className="h-10 w-10 rounded-full border border-gray-200"
+            <div className="w-full flex">
+                <aside className="hidden lg:block w-72 h-[calc(100vh-60px)] sticky top-[60px] border-r border-zinc-800 p-4 flex-shrink-0">
+                    <Sidebar />
+                </aside>
+
+                <main className="flex-1 max-w-full min-h-screen p-8">
+                    <h2 className="text-2xl font-bold mb-8 pb-4">Pitch Inbox</h2>
+
+                    {pitches.length === 0 ? (
+                        <div className="p-20 text-center text-[#71767b] font-medium border border-zinc-800 rounded-[32px] bg-[#080808]">
+                            No pitches received yet.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            {pitches.map((pitch) => (
+                                <div key={pitch._id} className="bg-[#080808]/40 border border-zinc-800 rounded-[32px] overflow-hidden flex flex-row min-h-[280px] hover:bg-[#080808] transition-all">
+
+                                    {/* Video Section */}
+                                    <div className="w-2/5 bg-black relative border-r border-zinc-800 flex-shrink-0">
+                                        <video
+                                            src={`http://localhost:5000/${pitch.pitchVideoUrl}`}
+                                            controls
+                                            className="w-full h-full object-cover"
                                         />
-                                        <div>
-                                            <h3 className="font-bold text-gray-900">{pitch.fromUserId?.displayName || pitch.fromUserId?.name || "Unknown Startup"}</h3>
-                                            <p className="text-xs text-gray-500">{pitch.fromUserId?.stage} • {pitch.fromUserId?.category1}</p>
+                                        <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-xl ${pitch.status === 'accepted' ? 'bg-green-600' :
+                                            pitch.status === 'rejected' ? 'bg-red-600' : 'bg-yellow-600'
+                                            }`}>
+                                            {pitch.status}
                                         </div>
                                     </div>
 
-                                    <p className="text-gray-600 text-sm mb-6 flex-1">
-                                        {pitch.message}
-                                    </p>
+                                    {/* Content Section */}
+                                    <div className="w-3/5 p-6 flex flex-col min-w-0">
+                                        <div className="flex-1 overflow-hidden flex flex-col">
+                                            <div className="flex items-center gap-3 mb-4 shrink-0">
+                                                <img
+                                                    src={pitch.fromUserId?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${pitch.fromUserId?.name || "unknown"}`}
+                                                    className="h-10 w-10 rounded-full border border-zinc-800"
+                                                    alt="Avatar"
+                                                />
+                                                <div className="min-w-0">
+                                                    <h3 className="font-bold text-[16px] text-white truncate">{pitch.fromUserId?.displayName || pitch.fromUserId?.name}</h3>
+                                                    <p className="text-[12px] font-bold text-[#71767b] uppercase tracking-wider">{pitch.fromUserId?.stage} • {pitch.fromUserId?.category1}</p>
+                                                </div>
+                                            </div>
 
-                                    {/* Actions */}
-                                    {pitch.status === 'pending' && (
-                                        <div className="flex space-x-3 mt-auto">
-                                            <button
-                                                onClick={() => handleStatusUpdate(pitch._id, 'accepted')}
-                                                disabled={isUpdating}
-                                                className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-                                            >
-                                                Accept
-                                            </button>
-                                            <button
-                                                onClick={() => handleStatusUpdate(pitch._id, 'rejected')}
-                                                disabled={isUpdating}
-                                                className="flex-1 bg-red-100 text-red-600 py-2 rounded-lg font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
-                                            >
-                                                Reject
-                                            </button>
+                                            {/* Scrollable Description Area */}
+                                            <div className="overflow-y-auto pr-2 custom-scrollbar max-h-[140px]">
+                                                <p className="text-[#e7e9ea] text-[14px] font-normal leading-relaxed whitespace-pre-wrap">
+                                                    {pitch.message}
+                                                </p>
+                                            </div>
                                         </div>
-                                    )}
 
-                                    {pitch.status !== 'pending' && (
-                                        <div className={`text-center py-2 rounded-lg font-medium ${pitch.status === 'accepted' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'
-                                            }`}>
-                                            Pitch {pitch.status}
+                                        {/* Actions at bottom */}
+                                        <div className="mt-6 pt-4 border-t border-zinc-800/50 shrink-0">
+                                            {pitch.status === 'pending' ? (
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(pitch._id, 'accepted')}
+                                                        disabled={isUpdating}
+                                                        className="flex-1 bg-white text-black py-2 rounded-full font-bold text-xs uppercase hover:bg-[#1d9bf0] hover:text-white transition-all disabled:opacity-50"
+                                                    >
+                                                        Accept
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(pitch._id, 'rejected')}
+                                                        disabled={isUpdating}
+                                                        className="flex-1 border border-zinc-800 text-white py-2 rounded-full font-bold text-xs uppercase hover:bg-red-600/10 hover:text-red-500 transition-all disabled:opacity-50"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className={`text-center py-2 rounded-full text-xs font-black uppercase border tracking-widest ${pitch.status === 'accepted' ? 'text-[#00ba7c] border-[#00ba7c]/30 bg-[#00ba7c]/5' : 'text-red-500 border-red-500/30 bg-red-500/5'
+                                                    }`}>
+                                                    Pitch {pitch.status}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </main>
             </div>
         </div>
     );

@@ -87,7 +87,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          // Update credentials with the new user data (which has updated pitchLimit)
           if (data.user) {
             dispatch(setCredentials(data.user));
           }
